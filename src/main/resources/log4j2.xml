@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- status=debug 可以查看log4j的装配过程 -->
+<configuration status="off" monitorInterval="1800">
+	<properties>
+		<property name="LOG_HOME">d:/ldebt/web-logs</property>
+		<!-- 日志切割的最小单位 -->
+		<property name="EVERY_FILE_SIZE">10M</property>
+		<property name="SERVER_NAME">ldebt-web</property>
+		<property name="STAT_NAME">DEBUG</property>
+	</properties>
+	<appenders>
+		<!-- 定义控制台输出 -->
+		<Console name="Console" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n" />
+		</Console>
+		<!-- 程序员调试日志 -->
+		<RollingRandomAccessFile name="devLog" fileName="${LOG_HOME}/${SERVER_NAME}.log" filePattern="${LOG_HOME}/%d{yyyy-MM-dd}/${SERVER_NAME}.%d{yyyy-MM-dd}.log">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true" />
+			</Policies>
+			<Filters>
+				<ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY" />
+			</Filters>
+		</RollingRandomAccessFile>
+		<!-- 产品数据分析日志 -->
+		<RollingRandomAccessFile name="productLog" fileName="${LOG_HOME}/${SERVER_NAME}_${STAT_NAME}.log"
+			filePattern="${LOG_HOME}/%d{yyyy-MM-dd}/${SERVER_NAME}_${STAT_NAME}.%d{yyyy-MM-dd}.log">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true" />
+			</Policies>
+			<Filters>
+				<ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY" />
+			</Filters>
+		</RollingRandomAccessFile>
+	</appenders>
+	<loggers>
+		<!-- 3rdparty Loggers -->
+		<logger name="org.jboss.netty" level="warn" />
+		<logger name="org.apache.http" level="warn" />
+		<logger name="com.mchange.v2" level="warn" />
+		<logger name="net.sf.ehcache" level="warn" />
+		<logger name="org.apache" level="info" />
+		<logger name="org.apache.shiro" level="warn" />
+		<logger name="org.mybatis.spring" level="warn" />
+		<logger name="org.quartz" level="error" />
+		<logger name="org.springframework.web.servlet.handler" level="info" />
+		<logger name="org.springframework" level="info" />
+		<logger name="com.cfcc.ldebt" level="debug" />
+		
+		<!-- Root Logger -->
+		<root level="error">
+			<appender-ref ref="devLog" />
+			<appender-ref ref="productLog" />
+			<appender-ref ref="Console" />
+		</root>
+	</loggers>
+</configuration>

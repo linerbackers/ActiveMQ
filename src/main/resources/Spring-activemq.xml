@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!-- 开启包自动扫描 -->
+    <context:component-scan base-package="com.example.*"/>
+    <!--配置生产者-->
+    <bean id="jsmConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+        <property name="connectionFactory">
+            <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+                <property name="brokerURL" value="tcp://11.40.1.102:61616"/>
+            </bean>
+        </property>
+        <property name="maxConnections" value="100"/>
+    </bean>
+
+    <!-- 定义消息队列（Queue） -->
+    <bean id="destinationQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <!-- 设置消息队列的名字 -->
+        <constructor-arg index="0" value="spring-active-queue"/>
+    </bean>
+
+    <!-- 定义消息主题（Topic） -->
+    <bean id="destinationTopic" class="org.apache.activemq.command.ActiveMQTopic">
+        <!-- 设置消息队列的名字 -->
+        <constructor-arg index="0" value="spring-active-Topic"/>
+    </bean>
+
+    <!--spring提供jms的工具类，可以发送、接受消息等-->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="jsmConnectionFactory"/>
+<!--
+        <property name="defaultDestination" ref="destinationQueue"/>
+-->
+        <property name="defaultDestination" ref="destinationTopic"/>
+        <property name="messageConverter">
+            <bean class="org.springframework.jms.support.converter.SimpleMessageConverter"/>
+        </property>
+    </bean>
+
+    <!--配置监听-->
+    <bean id="listenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="jsmConnectionFactory"/>
+        <property name="destination" ref="destinationTopic"/>
+        <!--引用自己的监听器-->
+        <property name="messageListener" ref="myMessageListener"/>
+        <!--客户端手动确认 -->
+       <!-- <property name="sessionAcknowledgeMode" value="2"/>-->
+    </bean>
+
+    <!--作用与@Component("myMessageListener")一样-->
+<!--
+    <bean id="myMessageListener" class="com.example.springdemo.MyessageListener"/>
+-->
+
+</beans>
